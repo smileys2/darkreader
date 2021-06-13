@@ -1,0 +1,63 @@
+diff --git a/src/background/index.html b/src/background/index.html
+deleted file mode 100644
+index 38ea6972..00000000
+--- a/src/background/index.html
++++ /dev/null
+@@ -1,12 +0,0 @@
+-<html>
+-
+-<head>
+-    <meta charset="utf-8" />
+-    <title>Dark Reader background</title>
+-</head>
+-
+-<body>
+-    <script src="index.js"></script>
+-</body>
+-
+-</html>
+diff --git a/src/manifest-firefox.json b/src/manifest-firefox.json
+index 24a9f6ce..757314ba 100644
+--- a/src/manifest-firefox.json
++++ b/src/manifest-firefox.json
+@@ -6,7 +6,9 @@
+         }
+     },
+     "background": {
+-        "page": "background/index.html"
++        "scripts": [
++            "background/index.js"
++        ]
+     },
+     "permissions": [
+         "storage",
+diff --git a/src/manifest-thunderbird.json b/src/manifest-thunderbird.json
+index 93112c49..cef689bb 100644
+--- a/src/manifest-thunderbird.json
++++ b/src/manifest-thunderbird.json
+@@ -6,7 +6,9 @@
+         }
+     },
+     "background": {
+-        "page": "background/index.html"
++        "scripts": [
++            "background/index.js"
++        ]
+     },
+     "permissions": [
+         "storage",
+diff --git a/src/manifest.json b/src/manifest.json
+index 3ad83a4e..95980c25 100644
+--- a/src/manifest.json
++++ b/src/manifest.json
+@@ -20,7 +20,9 @@
+     },
+     "background": {
+         "persistent": true,
+-        "page": "background/index.html"
++        "scripts": [
++            "background/index.js"
++        ]
+     },
+     "content_scripts": [
+         {
