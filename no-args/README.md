@@ -1,0 +1,1 @@
+https://github.com/darkreader/darkreader/pull/6333

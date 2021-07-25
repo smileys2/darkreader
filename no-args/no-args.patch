@@ -1,0 +1,47 @@
+diff --git a/src/background/extension.ts b/src/background/extension.ts
+index 69ce12ff..03307097 100644
+--- a/src/background/extension.ts
++++ b/src/background/extension.ts
+@@ -50,7 +50,7 @@ export class Extension {
+             },
+             onColorSchemeChange: this.onColorSchemeChange,
+         });
+-        this.user = new UserStorage({onRemoteSettingsChange: () => this.onRemoteSettingsChange()});
++        this.user = new UserStorage();
+         this.awaiting = [];
+     }
+ 
+@@ -371,11 +371,6 @@ export class Extension {
+         this.reportChanges();
+     }
+ 
+-    private onRemoteSettingsChange() {
+-        // TODO: Requires proper handling and more testing
+-        // to prevent cycling across instances.
+-    }
+-
+ 
+     //----------------------
+     //
+diff --git a/src/background/user-storage.ts b/src/background/user-storage.ts
+index adb3b90c..b86dc612 100644
+--- a/src/background/user-storage.ts
++++ b/src/background/user-storage.ts
+@@ -6,16 +6,11 @@ import {readSyncStorage, readLocalStorage, writeSyncStorage, writeLocalStorage,
+ 
+ const SAVE_TIMEOUT = 1000;
+ 
+-interface UserStorageOptions {
+-    onRemoteSettingsChange: () => any;
+-}
+-
+ export default class UserStorage {
+-    constructor({onRemoteSettingsChange}: UserStorageOptions) {
++    constructor() {
+         this.settings = null;
+         subscribeToOuterSettingsChange(async () => {
+             await this.loadSettings();
+-            onRemoteSettingsChange();
+         });
+     }
+ 
