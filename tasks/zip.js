@@ -21,14 +21,17 @@ async function archiveDirectory({dir, dest}) {
 async function zip({debug}) {
     const dir = getDestDir({debug});
     const firefoxDir = getDestDir({debug, firefox: true});
+    const chromeMV3Dir = getDestDir({debug, mv3: true});
     const thunderBirdDir = getDestDir({debug, thunderbird: true});
 
     const releaseDir = 'build/release';
     const chromeDest = `${releaseDir}/darkreader-chrome.zip`;
+    const chromeMV3Dest = `${releaseDir}/darkreader-chrome-mv3.zip`;
     const firefoxDest = `${releaseDir}/darkreader-firefox.xpi`;
     const thunderbirdDest = `${releaseDir}/darkreader-thunderbird.xpi`;
     await archiveDirectory({dir, dest: chromeDest});
     await archiveDirectory({dir: firefoxDir, dest: firefoxDest});
+    await archiveDirectory({dir: chromeMV3Dir, dest: chromeMV3Dest});
     await archiveDirectory({dir: thunderBirdDir, dest: thunderbirdDest});
 }
 
