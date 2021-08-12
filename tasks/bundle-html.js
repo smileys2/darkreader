@@ -81,9 +81,11 @@ async function bundleHTMLPage({cwdPath, rootComponent, props}, {debug}) {
     const getPath = (dir) => `${dir}/${cwdPath}`;
     const outPath = getPath(getDestDir({debug}));
     const firefoxPath = getPath(getDestDir({debug, firefox: true}));
+    const mv3Path = getPath(getDestDir({debug, mv3: true}));
     const thunderBirdPath = getPath(getDestDir({debug, thunderbird: true}));
     await fs.outputFile(outPath, html);
     await fs.copy(outPath, firefoxPath);
+    await fs.copy(outPath, mv3Path);
     await fs.copy(outPath, thunderBirdPath);
 }
 

@@ -17,7 +17,7 @@ import createStaticStylesheet from '../generators/static-theme';
 import {createSVGFilterStylesheet, getSVGFilterMatrixValue, getSVGReverseFilterMatrixValue} from '../generators/svg-filter';
 import type {ExtensionData, FilterConfig, News, Shortcuts, UserSettings, TabInfo} from '../definitions';
 import {isSystemDarkModeEnabled} from '../utils/media-query';
-import {isFirefox, isThunderbird} from '../utils/platform';
+import {isFirefox, isMV3, isThunderbird} from '../utils/platform';
 import {MessageType} from '../utils/message';
 import {logInfo, logWarn} from '../utils/log';
 
@@ -37,9 +37,13 @@ export class Extension {
     private wasEnabledOnLastCheck: boolean = null;
     private awaiting: Array<() => void>;
     private popupOpeningListener: () => void = null;
+    // Is used only with Firefox to bypass Firefox bug
     private wasLastColorSchemeDark: boolean = null;
+    // Is used only with MV3 to store current color scheme
+    private isColorSchemeDark: boolean = null;
 
     static ALARM_NAME = 'auto-time-alarm';
+
     constructor() {
         this.ready = false;
 
@@ -85,6 +89,16 @@ export class Extension {
                 nextCheck = nextTimeInterval(this.user.settings.time.activation, this.user.settings.time.deactivation);
                 break;
             case 'system':
+                if (isMV3) {
+                    if (this.isColorSchemeDark === null) {
+                        // Assume that dark theme is on for now, and then asynchroneously query it from content script
+                        this.isEnabledCached = true;
+                        this.tabs.querySystemColorScheme();
+                    } else {
+                        this.isEnabledCached = this.isColorSchemeDark;
+                    }
+                    break;
+                }
                 if (isFirefox) {
                     // BUG: Firefox background page always matches initial color scheme.
                     this.isEnabledCached = this.wasLastColorSchemeDark == null
@@ -158,7 +172,12 @@ export class Extension {
                 info.isInjected = await this.tabs.canAccessActiveTab();
                 return info;
             },
-            changeSettings: (settings) => this.changeSettings(settings),
+            changeSettings: (settings, isDark) => {
+                if (isDark === false || isDark === true) {
+                    this.isColorSchemeDark = isDark;
+                }
+                this.changeSettings(settings);
+            },
             setTheme: (theme) => this.setTheme(theme),
             setShortcut: ({command, shortcut}) => this.setShortcut(command, shortcut),
             toggleURL: (url) => this.toggleURL(url),

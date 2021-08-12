@@ -29,8 +29,10 @@ async function bundleLocale(/** @type {string} */filePath, {debug}) {
     const getOutputPath = (dir) => `${dir}/_locales/${locale}/messages.json`;
     const chromeDir = getDestDir({debug});
     const firefoxDir = getDestDir({debug, firefox: true});
+    const mv3Dir = getDestDir({debug, mv3: true});
     const thunderBirdDir = getDestDir({debug, thunderbird: true});
     await fs.outputFile(getOutputPath(chromeDir), json);
+    await fs.outputFile(getOutputPath(mv3Dir), json);
     await fs.outputFile(getOutputPath(firefoxDir), json);
     await fs.outputFile(getOutputPath(thunderBirdDir), json);
 }

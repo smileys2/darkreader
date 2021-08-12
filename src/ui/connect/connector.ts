@@ -1,6 +1,7 @@
-import {isFirefox} from '../../utils/platform';
+import {isFirefox, isMV3} from '../../utils/platform';
 import type {ExtensionData, ExtensionActions, FilterConfig, TabInfo, Message, UserSettings} from '../../definitions';
 import {MessageType} from '../../utils/message';
+import {isSystemDarkModeEnabled} from '../../utils/media-query';
 
 export default class Connector implements ExtensionActions {
     private changeSubscribers: Set<(data: ExtensionData) => void>;
@@ -70,7 +71,10 @@ export default class Connector implements ExtensionActions {
     }
 
     changeSettings(settings: Partial<UserSettings>) {
-        chrome.runtime.sendMessage<Message>({type: MessageType.UI_CHANGE_SETTINGS, data: settings});
+        chrome.runtime.sendMessage<Message>({type: MessageType.UI_CHANGE_SETTINGS, data: {
+            settings,
+            isDark: (isMV3 && settings.automation === 'system') ? isSystemDarkModeEnabled() : undefined
+        }});
     }
 
     setTheme(theme: Partial<FilterConfig>) {
