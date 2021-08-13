@@ -36,8 +36,6 @@ function patchMV3JS(/** @type {string} */code) {
     code = replace(code, 'chrome.browserAction.setBadgeBackgroundColor', 'chrome.action.setBadgeBackgroundColor');
     code = replace(code, 'chrome.browserAction.setBadgeText', 'chrome.action.setBadgeText');
 
-    // Background serivice workers do not have access to "foreground" APIs like chrome.i18n
-    code = replace(code, 'chrome.i18n.getUILanguage()', "navigator.language.split('-')[0]");
     // TODO: Fix me
     code = replace(code, 'window.matchMedia(query).matches', 'false');
     return code;
