@@ -2,7 +2,6 @@ const userAgent = typeof navigator === 'undefined' ? 'some useragent' : navigato
 const platform = typeof navigator === 'undefined' ? 'some platform' : navigator.platform.toLowerCase();
 
 export const isChromium = userAgent.includes('chrome') || userAgent.includes('chromium');
-export const isMV3 = chrome && chrome.runtime && chrome.runtime.getManifest().manifest_version === 3;
 export const isThunderbird = userAgent.includes('thunderbird');
 export const isFirefox = userAgent.includes('firefox') || isThunderbird;
 export const isVivaldi = userAgent.includes('vivaldi');
@@ -50,3 +49,5 @@ export function compareChromeVersions($a: string, $b: string) {
 export const isXMLHttpRequestSupported = typeof XMLHttpRequest === 'function';
 
 export const isFetchSupported = typeof fetch === 'function';
+
+export const isMV3 = globalThis.chrome && globalThis.chrome.runtime && globalThis.chrome.runtime.getManifest().manifest_version === 3;
