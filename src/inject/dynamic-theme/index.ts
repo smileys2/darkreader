@@ -68,6 +68,10 @@ function stopStylePositionWatchers() {
     nodePositionWatchers.clear();
 }
 
+/*
+ * We cancell propagation of our event before it reaches any other handlers
+ * by creating an extra 'parent' element and calling stopImmediatePropagation()
+ */
 function injectedProxyEventListener(event) {
     event.stopImmediatePropagation();
     injectProxy();
@@ -142,11 +146,11 @@ function createStaticStyleOverrides() {
 
     const proxyScript = createOrUpdateScript('darkreader--proxy');
     proxyScript.textContent = '';
-    proxyScript.addEventListener('yeet', injectedProxyEventListener);
-    const event = new Event('yeet');
+    proxyScript.addEventListener('__darkreader__yeet', injectedProxyEventListener);
+    const event = new Event('__darkreader__yeet');
     document.head.insertBefore(proxyScript.parentElement, rootVarsStyle.nextSibling);
     proxyScript.dispatchEvent(event);
-    proxyScript.removeEventListener('yeet', injectedProxyEventListener);
+    proxyScript.removeEventListener('__darkreader__yeet', injectedProxyEventListener);
     proxyScript.parentElement.remove();
 }
 
