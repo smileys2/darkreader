@@ -1,0 +1,184 @@
+diff --git a/src/background/newsmaker.ts b/src/background/newsmaker.ts
+index 9b705366..573ee2ce 100644
+--- a/src/background/newsmaker.ts
++++ b/src/background/newsmaker.ts
+@@ -54,7 +54,7 @@ export default class Newsmaker {
+     private async getNews() {
+         try {
+             const response = await fetch(`https://darkreader.github.io/blog/posts.json?date=${(new Date()).toISOString().substring(0, 10)}`, {cache: 'no-cache'});
+-            const $news: Array<{id: string; date: string; headline: string; important?}> = await response.json();
++            const $news: Array<{id: string; date: string; headline: string; important?: any}> = await response.json();
+             const readNews = await this.getReadNews();
+             const news: News[] = $news.map(({id, date, headline, important}) => {
+                 const url = getBlogPostURL(id);
+diff --git a/src/background/utils/state-manager.ts b/src/background/utils/state-manager.ts
+index 3c30cf36..0995d252 100644
+--- a/src/background/utils/state-manager.ts
++++ b/src/background/utils/state-manager.ts
+@@ -60,16 +60,16 @@ export enum StateManagerState {
+     SAVING_OVERRIDE = 5,
+ }
+ 
+-export class StateManager {
++export class StateManager<T = any> {
+     private localStorageKey: string;
+     private parent;
+-    private defaults;
++    private defaults: T;
+ 
+     private meta: StateManagerState = StateManagerState.INITIAL;
+     // loadStateBarrier is guaranteed to exists only when meta is LOADING.
+     private loadStateBarrier: PromiseBarrier = null;
+ 
+-    constructor(localStorageKey: string, parent, defaults){
++    constructor(localStorageKey: string, parent: any, defaults: T){
+         if (!isNonPersistent()) {
+             // Do nothing if the current build uses persistent background
+             this.meta = StateManagerState.DISABLED;
+@@ -83,9 +83,9 @@ export class StateManager {
+     }
+ 
+     private collectState() {
+-        const state = {};
++        const state = {} as T;
+         for (const key of Object.keys(this.defaults)) {
+-            state[key] = this.parent[key] || this.defaults[key];
++            state[key as keyof T] = this.parent[key] || this.defaults[key as keyof T];
+         }
+         return state;
+     }
+diff --git a/src/generators/dynamic-theme.ts b/src/generators/dynamic-theme.ts
+index 675064fa..1397cb76 100644
+--- a/src/generators/dynamic-theme.ts
++++ b/src/generators/dynamic-theme.ts
+@@ -53,7 +53,7 @@ export function getDynamicThemeFixesFor(url: string, frameURL: string, fixes: Dy
+     const common = {
+         url: fixes[0].url,
+         invert: fixes[0].invert || [],
+-        css: fixes[0].css || [],
++        css: fixes[0].css || [] as any[],
+         ignoreInlineStyle: fixes[0].ignoreInlineStyle || [],
+         ignoreImageAnalysis: fixes[0].ignoreImageAnalysis || [],
+     };
+diff --git a/src/generators/utils/format.ts b/src/generators/utils/format.ts
+index c9e9cb6a..429ec7d6 100644
+--- a/src/generators/utils/format.ts
++++ b/src/generators/utils/format.ts
+@@ -8,8 +8,8 @@ interface SiteFix {
+ interface SitesFixesFormatOptions {
+     props: string[];
+     getPropCommandName: (prop: string) => string;
+-    formatPropValue: (prop: string, value) => string;
+-    shouldIgnoreProp: (props: string, value) => boolean;
++    formatPropValue: (prop: string, value: any) => string;
++    shouldIgnoreProp: (props: string, value: any) => boolean;
+ }
+ 
+ export function formatSitesFixesConfig(fixes: SiteFix[], options: SitesFixesFormatOptions) {
+diff --git a/src/inject/dynamic-theme/network.ts b/src/inject/dynamic-theme/network.ts
+index aa4285fb..64b63296 100644
+--- a/src/inject/dynamic-theme/network.ts
++++ b/src/inject/dynamic-theme/network.ts
+@@ -9,8 +9,8 @@ interface FetchRequest {
+ }
+ 
+ let counter = 0;
+-const resolvers = new Map<number, (data) => void>();
+-const rejectors = new Map<number, (error) => void>();
++const resolvers = new Map<number, (data: any) => void>();
++const rejectors = new Map<number, (error: any) => void>();
+ 
+ export async function bgFetch(request: FetchRequest) {
+     return new Promise<string>((resolve, reject) => {
+diff --git a/src/inject/dynamic-theme/stylesheet-proxy.ts b/src/inject/dynamic-theme/stylesheet-proxy.ts
+index 1a4f051f..7c824237 100644
+--- a/src/inject/dynamic-theme/stylesheet-proxy.ts
++++ b/src/inject/dynamic-theme/stylesheet-proxy.ts
+@@ -102,7 +102,7 @@ export function injectProxy() {
+         // current situation of the DOM. Instead of a static list.
+         const NodeListBehavior: ProxyHandler<NodeListOf<HTMLElement>> = {
+             get: function (_: NodeListOf<HTMLElement>, property: string) {
+-                return getCurrentElementValue()[property];
++                return getCurrentElementValue()[property as any];
+             }
+         };
+         elements = new Proxy(elements, NodeListBehavior);
+diff --git a/src/tsconfig.json b/src/tsconfig.json
+index af16beea..cf013a46 100644
+--- a/src/tsconfig.json
++++ b/src/tsconfig.json
+@@ -1,5 +1,6 @@
+ {
+     "compilerOptions": {
++        "noImplicitAny": true,
+         "target": "es2019",
+         "baseUrl": ".",
+         "module": "es2015",
+diff --git a/src/ui/controls/button/index.tsx b/src/ui/controls/button/index.tsx
+index 7b62efa1..bbf77fd1 100644
+--- a/src/ui/controls/button/index.tsx
++++ b/src/ui/controls/button/index.tsx
+@@ -1,7 +1,7 @@
+ import {m} from 'malevic';
+ import {mergeClass, omitAttrs} from '../utils';
+ 
+-export default function Button(props: Malevic.NodeAttrs, ...children) {
++export default function Button(props: Malevic.NodeAttrs, ...children: any[]) {
+     const cls = mergeClass('button', props.class);
+     const attrs = omitAttrs(['class'], props);
+ 
+diff --git a/src/ui/controls/checkbox/index.tsx b/src/ui/controls/checkbox/index.tsx
+index 8a861af7..10538142 100644
+--- a/src/ui/controls/checkbox/index.tsx
++++ b/src/ui/controls/checkbox/index.tsx
+@@ -1,7 +1,7 @@
+ import {m} from 'malevic';
+ import {mergeClass, omitAttrs} from '../utils';
+ 
+-export default function CheckBox(props: Malevic.NodeAttrs, ...children) {
++export default function CheckBox(props: Malevic.NodeAttrs, ...children: any[]) {
+     const cls = mergeClass('checkbox', props.class);
+     const attrs = omitAttrs(['class', 'checked', 'onchange'], props);
+     const check = (domNode: HTMLInputElement) => domNode.checked = Boolean(props.checked);
+diff --git a/src/ui/controls/multi-switch/index.tsx b/src/ui/controls/multi-switch/index.tsx
+index b69a0636..3655aaae 100644
+--- a/src/ui/controls/multi-switch/index.tsx
++++ b/src/ui/controls/multi-switch/index.tsx
+@@ -7,7 +7,7 @@ interface MultiSwitchProps {
+     onChange: (value: string) => void;
+ }
+ 
+-export default function MultiSwitch(props: MultiSwitchProps, ...children) {
++export default function MultiSwitch(props: MultiSwitchProps, ...children: any[]) {
+     return (
+         <span class={['multi-switch', props.class]}>
+             <span
+diff --git a/src/ui/controls/tab-panel/tab.tsx b/src/ui/controls/tab-panel/tab.tsx
+index 85bba47a..88ee9f9d 100644
+--- a/src/ui/controls/tab-panel/tab.tsx
++++ b/src/ui/controls/tab-panel/tab.tsx
+@@ -1,6 +1,6 @@
+ import {m} from 'malevic';
+ 
+-export default function Tab({isActive}, ...children) {
++export default function Tab({isActive}: {isActive: boolean}, ...children: any[]) {
+     const tabCls = {
+         'tab-panel__tab': true,
+         'tab-panel__tab--active': isActive
+diff --git a/src/utils/log.ts b/src/utils/log.ts
+index 80760e09..1881dd7c 100644
+--- a/src/utils/log.ts
++++ b/src/utils/log.ts
+@@ -1,10 +1,10 @@
+ declare const __DEBUG__: boolean;
+ const DEBUG = __DEBUG__;
+ 
+-export function logInfo(...args) {
++export function logInfo(...args: any[]) {
+     DEBUG && console.info(...args);
+ }
+ 
+-export function logWarn(...args) {
++export function logWarn(...args: any[]) {
+     DEBUG && console.warn(...args);
+ }
