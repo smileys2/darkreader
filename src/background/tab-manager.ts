@@ -19,7 +19,7 @@ interface ConnectionMessageOptions {
 }
 
 interface TabManagerOptions {
-    getConnectionMessage: (options: ConnectionMessageOptions) => any;
+    getConnectionMessage: (options: ConnectionMessageOptions) => Message | Promise<Message>;
     onColorSchemeChange: ({isDark}: {isDark: boolean}) => void;
 }
 
@@ -76,7 +76,9 @@ export default class TabManager {
                         }
                     };
 
-                    const isPanel = sender.tab == null;
+                    // Workaround for thunderbird, not sure how. But sometimes sender.tab is undefined but accessing it.
+                    // Will actually throw a very nice error.
+                    const isPanel = typeof sender === 'undefined' || typeof sender.tab === 'undefined';
                     if (isPanel) {
                         // NOTE: Vivaldi and Opera can show a page in a side panel,
                         // but it is not possible to handle messaging correctly (no tab ID, frame ID).
@@ -211,7 +213,7 @@ export default class TabManager {
         });
     }
 
-    async sendMessage(getMessage: (url: string, frameUrl: string) => any) {
+    async sendMessage(getMessage: (url: string, frameUrl: string) => Message) {
         (await queryTabs({}))
             .filter((tab) => Boolean(this.tabs[tab.id]))
             .forEach((tab) => {
