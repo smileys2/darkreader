@@ -28,11 +28,20 @@ async function patchManifest({debug, firefox, thunderbird}) {
     await fs.writeJson(`${destDir}/manifest.json`, patched, {spaces: 4});
 }
 
+async function patchManifestChrome(debug) {
+    const manifest = await fs.readJson(`${srcDir}/manifest.json`);
+    manifest.permissions.push('unlimitedStorage');
+    const destDir = getDestDir({debug, firefox: false, thunderbird: false});
+    await fs.writeJson(`${destDir}/manifest.json`, manifest, {spaces: 4});
+}
+
 async function copyFile(path, {debug, firefox, thunderbird}) {
     const cwdPath = getCwdPath(path);
     const destDir = getDestDir({debug, firefox, thunderbird});
     if ((firefox || thunderbird) && cwdPath === 'manifest.json') {
         await patchManifest({debug, firefox, thunderbird});
+    } else if (!firefox && !thunderbird && cwdPath === 'manifest.json') {
+        await patchManifestChrome(debug);
     } else {
         const src = `${srcDir}/${cwdPath}`;
         const dest = `${destDir}/${cwdPath}`;
