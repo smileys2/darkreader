@@ -71,7 +71,7 @@ export default class TabManager {
 
             switch (message.type) {
                 case MessageType.CS_FRAME_CONNECT: {
-                    if (this.isSystemDarkMode === null) {
+                    if (isMV3 && this.isSystemDarkMode === null) {
                         chrome.tabs.sendMessage<Message>(sender.tab.id, {type: MessageType.BG_QUERY_SYSTEM_COLOR_SCHEME});
                     }
 
@@ -260,6 +260,10 @@ export default class TabManager {
     }
 
     async querySystemColorScheme() {
+        if (!isMV3) {
+            logWarn('querySystemColorScheme() was called in non-MV3 build.');
+            return;
+        }
         await this.stateManager.loadState();
         if (this.isSystemDarkMode === null) {
             const tab = await this.getActiveTab();
