@@ -44,12 +44,16 @@ enum DocumentState {
 
 export default class TabManager {
     private tabs: {[tabId: number]: {[frameId: number]: FrameInfo}};
+    private isSystemDarkMode: boolean;
     private stateManager: StateManager;
+    private onColorSchemeChange: ({isDark}: {isDark: boolean}) => void;
     static LOCAL_STORAGE_KEY = 'TabManager-state';
 
     constructor({getConnectionMessage, onColorSchemeChange}: TabManagerOptions) {
-        this.stateManager = new StateManager(TabManager.LOCAL_STORAGE_KEY, this, {tabs: {}});
+        this.stateManager = new StateManager(TabManager.LOCAL_STORAGE_KEY, this, {tabs: {}, isSystemDarkMode: null});
         this.tabs = {};
+        this.isSystemDarkMode = null;
+        this.onColorSchemeChange = onColorSchemeChange;
 
         chrome.runtime.onMessage.addListener(async (message: Message, sender) => {
             function addFrame(tabs: {[tabId: number]: {[frameId: number]: FrameInfo}}, tabId: number, frameId: number, senderURL: string) {
@@ -67,6 +71,10 @@ export default class TabManager {
 
             switch (message.type) {
                 case MessageType.CS_FRAME_CONNECT: {
+                    if (this.isSystemDarkMode === null) {
+                        chrome.tabs.sendMessage<Message>(sender.tab.id, {type: MessageType.BG_QUERY_SYSTEM_COLOR_SCHEME});
+                    }
+
                     const reply = (options: ConnectionMessageOptions) => {
                         const message = getConnectionMessage(options);
                         if (message instanceof Promise) {
@@ -155,7 +163,8 @@ export default class TabManager {
             }
 
             if (type === MessageType.CS_COLOR_SCHEME_CHANGE) {
-                onColorSchemeChange(data);
+                this.isSystemDarkMode = data.isDark;
+                this.onColorSchemeChange(data);
             }
             if (type === MessageType.UI_SAVE_FILE) {
                 const {content, name} = data;
@@ -248,5 +257,15 @@ export default class TabManager {
             tab = tabs.find((t) => !isExtensionPage(t.url)) || tab;
         }
         return tab;
+    }
+
+    async querySystemColorScheme() {
+        await this.stateManager.loadState();
+        if (this.isSystemDarkMode === null) {
+            const tab = await this.getActiveTab();
+            chrome.tabs.sendMessage<Message>(tab.id, {type: MessageType.BG_QUERY_SYSTEM_COLOR_SCHEME});
+        } else {
+            this.onColorSchemeChange({isDark: this.isSystemDarkMode});
+        }
     }
 }

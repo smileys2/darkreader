@@ -17,7 +17,7 @@ import createStaticStylesheet from '../generators/static-theme';
 import {createSVGFilterStylesheet, getSVGFilterMatrixValue, getSVGReverseFilterMatrixValue} from '../generators/svg-filter';
 import type {ExtensionData, FilterConfig, News, Shortcuts, UserSettings, TabInfo} from '../definitions';
 import {isSystemDarkModeEnabled} from '../utils/media-query';
-import {isFirefox, isThunderbird} from '../utils/platform';
+import {isFirefox, isMV3, isThunderbird} from '../utils/platform';
 import {MessageType} from '../utils/message';
 import {logInfo} from '../utils/log';
 
@@ -36,6 +36,7 @@ export class Extension {
     private isEnabledCached: boolean = null;
 
     static ALARM_NAME = 'auto-time-alarm';
+
     constructor() {
         this.ready = false;
 
@@ -57,11 +58,11 @@ export class Extension {
         this.awaiting = [];
     }
 
-    private alarmListener = (alarm: chrome.alarms.Alarm): void => {
+    private alarmListener(alarm: chrome.alarms.Alarm): void {
         if (alarm.name === Extension.ALARM_NAME) {
             this.handleAutoCheck();
         }
-    };
+    }
 
     isEnabled(): boolean {
         if (this.isEnabledCached !== null) {
@@ -76,6 +77,12 @@ export class Extension {
                 nextCheck = nextTimeInterval(this.user.settings.time.activation, this.user.settings.time.deactivation);
                 break;
             case 'system':
+                if (isMV3) {
+                    // Assume that dark theme is off for now, and then asynchroneously query it from content script
+                    this.isEnabledCached = false;
+                    this.tabs.querySystemColorScheme();
+                    break;
+                }
                 if (isFirefox) {
                     // BUG: Firefox background page always matches initial color scheme.
                     this.isEnabledCached = this.wasLastColorSchemeDark == null
