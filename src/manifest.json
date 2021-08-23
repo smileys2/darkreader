@@ -41,7 +41,6 @@
         "fontSettings",
         "storage",
         "tabs",
-        "unlimitedStorage",
         "<all_urls>"
     ],
     "commands": {

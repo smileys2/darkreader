@@ -14,9 +14,9 @@
     "permissions": [
         "alarms",
         "fontSettings",
-        "storage",
+        "scripting",
         "tabs",
-        "scripting"
+        "unlimitedStorage"
     ],
     "host_permissions": [
         "*://*/*"
